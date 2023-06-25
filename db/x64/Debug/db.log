@@ -1,0 +1,23 @@
+﻿  db.cpp
+C:\Users\carly\source\repos\db\db\db.cpp(31,9): warning C4101: 'recv_size': variable local sin referencia
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): error C2672: 'invoke': no se encontró una función sobrecargada que coincida
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\type_traits(1568,19): message : puede ser 'unknown-type std::invoke(_Callable &&,_Ty1 &&,_Types2 &&...) noexcept(<expr>)'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): message : No se pudo especializar la plantilla de función "unknown-type std::invoke(_Callable &&,_Ty1 &&,_Types2 &&...) noexcept(<expr>)"
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): message : Con los siguientes argumentos de plantilla:
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): message : '_Callable=void (__cdecl *)(void)'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): message : '_Ty1=unsigned __int64'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): message : '_Types2={}'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\type_traits(1562,19): message : o       'unknown-type std::invoke(_Callable &&) noexcept(<expr>)'
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(55,14): message : "unknown-type std::invoke(_Callable &&) noexcept(<expr>)": espera 1 argumentos - 2 proporcionado
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(62,9): message : Vea la referencia a la creación de una instancia de la función plantilla "unsigned int std::thread::_Invoke<_Tuple,0,1>(void *) noexcept" que se está compilando
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(68): message : Vea la referencia a la creación de una instancia de la función plantilla "unsigned int (__cdecl *std::thread::_Get_invoke<_Tuple,0,1>(std::integer_sequence<size_t,0,1>) noexcept)(void *) noexcept" que se está compilando
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.35.32215\include\thread(87): message : Vea la referencia a la creación de una instancia de la función plantilla "void std::thread::_Start<void(__cdecl &)(void),SOCKET&>(_Fn,SOCKET &)" que se está compilando
+          with
+          [
+              _Fn=void (__cdecl &)(void)
+          ]
+C:\Users\carly\source\repos\db\db\db.cpp(55,45): message : Vea la referencia a la creación de una instancia de la función plantilla "std::thread::thread<void(__cdecl &)(void),SOCKET&,0>(_Fn,SOCKET &)" que se está compilando
+          with
+          [
+              _Fn=void (__cdecl &)(void)
+          ]
