@@ -13,6 +13,7 @@
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
+#include <iterator>
 
 const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
@@ -97,11 +98,37 @@ void print_line(std::vector<std::string> header)
     std::cout << std::endl;
 }
 
+void print_line(std::vector<std::string> header, std::vector<int> max)
+{
+    for (unsigned int i = 0; i < header.size(); i++)
+    {
+        std::cout << "+";
+        std::cout << "-";
+        for (unsigned int x = 0; x < max[i]; x++)
+            std::cout << "-";
+        std::cout << "-";
+    }
+    std::cout << "+";
+    std::cout << std::endl;
+}
+
 void print_words(std::vector<std::string> header)
 {
     for (unsigned int i = 0; i < header.size(); i++)
     {
         std::cout << "|" << " " << header[i] << " ";
+    }
+    std::cout << "|";
+    std::cout << std::endl;
+}
+
+void print_words(std::vector<std::string> header, std::vector<int> max)
+{
+    for (unsigned int i = 0; i < header.size(); i++)
+    {
+        std::cout << "|" << " " << header[i];
+        for (unsigned int x = 0; x < (max[i] - (header[i].length() - 1)); x++)
+            std::cout << " ";
     }
     std::cout << "|";
     std::cout << std::endl;
@@ -200,11 +227,32 @@ void evaluate(std::vector<std::string> tokens)
         {
             if (dbs[i].get_name().compare(tokens[1]) == 0)
             {
+                std::vector<int> max;
+                std::vector<std::vector<std::string>> values = dbs[i].get_values();
                 std::vector<std::string> header = dbs[i].get_header();
-                int count = 0;
-                print_line(header);
-                print_words(header);
-                print_line(header);
+                for (unsigned int y = 0; y < header.size(); y++)
+                {
+                    max.push_back(header[y].length());
+                    for (unsigned int x = 0; x < values.size(); x++)
+                    {
+                        if (max.empty() || (max.size() - 1) < y)
+                        {
+                            max.push_back(values[x][y].size());
+                            continue;
+                        }
+                        if (values[x][y].size() > max[y])
+                            max[y] = values[x][y].size();
+                    }
+                }
+                print_line(header, max);
+                print_words(header, max);
+                print_line(header, max);
+                for (unsigned int y = 0; y < values.size(); y++)
+                {
+                    print_words(values[y], max);
+                    print_line(values[y], max);
+                }
+                
                 return;
             }
         }
@@ -278,6 +326,19 @@ int main()
     std::thread file_th(db_listen);
     file_th.detach();
     char msg[1024];
+    if (std::filesystem::exists("db1.ldb"))
+    {
+        std::ifstream rec("db1.ldb");
+        std::string a, b;
+        rec >> a >> b;
+        std::vector<std::string> header = { a, b };
+        dbs.push_back(db("db1", header));
+        while (rec >> a >> b)
+        {
+            std::vector<std::string> new_values = { a, b };
+            dbs[0].add_value(new_values);
+        }
+    }
     while (true)
     {
         std::cout << "> ";
