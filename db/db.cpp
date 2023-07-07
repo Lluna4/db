@@ -19,6 +19,31 @@ const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
 int PORT = 5050;
 
+int	ft_atoi(const char* a)
+{
+    int	ret;
+    int	sign;
+
+    ret = 0;
+    sign = 1;
+    while ((*a >= 9 && *a <= 13) || *a == 32)
+    {
+        a++;
+    }
+    if (*a == '+' || *a == '-')
+    {
+        if (*a == '-')
+            sign = -1;
+        a++;
+    }
+    while (*a >= '0' && *a <= '9')
+    {
+        ret = ret * 10 + (*a - '0');
+        a++;
+    }
+    return (sign * ret);
+}
+
 class db
 {
     public:
@@ -27,6 +52,11 @@ class db
         db(std::string name, std::vector<std::string> initial_values)
             :name_(name), header(initial_values)
         {}
+
+        void rename(std::string new_name)
+        {
+            name_ = new_name;
+        }
 
         void add_value(std::vector<std::string> new_value)
         {
@@ -42,6 +72,11 @@ class db
         std::vector<std::vector<std::string>> get_values()
         {
             return values;
+        }
+
+        std::vector<std::string> get_value(int index)
+        {
+            return values[index];
         }
         
         std::string get_name()
@@ -213,7 +248,7 @@ void evaluate(std::vector<std::string> tokens)
                 }
                 else
                 {
-                    std::cout << "La cantidad de datos introducidos es incorrecta";
+                    std::cout << "La cantidad de datos introducidos es incorrecta" << std::endl;
                 }
                 return;
             }
@@ -280,6 +315,71 @@ void evaluate(std::vector<std::string> tokens)
         }
         std::cout << "No se ha encontrado una base de datos con ese nombre (ls para ver las bases de datos activas)" << std::endl;
     }
+    if (tokens[0].compare("load") == 0)
+    {
+        std::string name = tokens[1];
+        for (unsigned int i = 0; i < dbs.size(); i++)
+        {
+            if (dbs[i].get_name().compare(tokens[1]) == 0)
+            {
+                std::cout << "Ya existe una base de datos con ese nombre (remame para cambiar el nombre)" << std::endl;
+                return;
+            }
+        }
+        if (std::filesystem::exists(tokens[1].append(".ldb")))
+        {
+            std::ifstream infile(tokens[1]);
+            std::string head;
+            std::getline(infile, head);
+            std::cout << head << std::endl;
+            std::vector<std::string> header = tokenize(head);
+            dbs.push_back(db(name, header));
+            std::string linea;
+            while (std::getline(infile, linea))
+            {
+                std::cout << linea << std::endl;
+                std::vector<std::string> values = tokenize(linea);
+                dbs.back().add_value(values);
+                //linea.clear();
+            }
+            return;
+        }
+        std::cout << "El archivo con ese nombre no fue encontrado recuerda que tiene que tener la extension .ldb" << std::endl;
+    }
+    if (tokens[0].compare("rename") == 0)
+    {
+        for (unsigned int i = 0; i < dbs.size(); i++)
+        {
+            if (dbs[i].get_name().compare(tokens[1]) == 0)
+            {
+                dbs[i].rename(tokens[2]);
+                std::rename(tokens[1].append(".ldb").c_str(), tokens[2].append(".ldb").c_str());
+            }
+        }
+    }
+    if (tokens[0].compare("get") == 0)
+    {
+        for (unsigned int i = 0; i < dbs.size(); i++)
+        {
+            if (dbs[i].get_name().compare(tokens[1]) == 0 && dbs[i].get_size() > ft_atoi(tokens[2].c_str()) - 1)
+            {
+                if (tokens.size() > 2)
+                {
+                    std::vector<std::string> values = dbs[i].get_value(ft_atoi(tokens[2].c_str()) - 1);
+                    for (unsigned int x = 0; x < values.size(); x++)
+                    {
+                        std::cout << values[x];
+                        if (x < tokens.size() - 1)
+                            std::cout << " ";
+                    }
+                    std::cout << std::endl;
+                }
+                else
+                    std::cout << "No hay suficientes parametros" << std::endl;
+                return;
+            }
+        }
+    }
 }
 
 void db_listen()
@@ -326,19 +426,6 @@ int main()
     std::thread file_th(db_listen);
     file_th.detach();
     char msg[1024];
-    if (std::filesystem::exists("db1.ldb"))
-    {
-        std::ifstream rec("db1.ldb");
-        std::string a, b;
-        rec >> a >> b;
-        std::vector<std::string> header = { a, b };
-        dbs.push_back(db("db1", header));
-        while (rec >> a >> b)
-        {
-            std::vector<std::string> new_values = { a, b };
-            dbs[0].add_value(new_values);
-        }
-    }
     while (true)
     {
         std::cout << "> ";
