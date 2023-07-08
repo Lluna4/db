@@ -303,7 +303,7 @@ void evaluate(std::vector<std::string> tokens)
         }
         std::cout << std::endl;
     }
-    if (tokens[0].compare("size") == 0) //doesnt work
+    if (tokens[0].compare("size") == 0)
     {
         for (unsigned int i = 0; i < dbs.size(); i++)
         {
