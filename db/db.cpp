@@ -109,14 +109,15 @@ std::vector<db> dbs;
 std::vector<std::string> tokenize(std::string result)
 {
     std::vector<std::string> tokens;
-    //std::stringstream check1(result);
-    int index = 0;
+    int index = -1;
+    int a = 0;
     bool inside = false;
     size_t last = 0;
 
-    while (result[index])
+    while (result[a])
     {
         index++;
+        a = index;
         if (result[index] == ' ' || result[index] == '"' || result[index] == '\0')
         {
             if ((result[index] == ' ' || result[index] == '\0') && inside == false)
@@ -126,42 +127,46 @@ std::vector<std::string> tokenize(std::string result)
                     return {};
                 std::memcpy(buffer, &result.c_str()[last], index - last);
                 std::string ret = buffer;
+                if (ret.size() == 0)
+                    break;
                 tokens.push_back(ret);
                 last = index + 1;
                 free(buffer);
-                continue;
             }
-            if (result[index] == '"' && inside == false)
+            else if (result[index] == '"' && inside == false)
+            {
+                last = index;
+                inside = true;
+            }
+            else if (result[index] == '"' && inside == true)
             {
                 last++;
-                inside = true;
-                continue;
-            }
-            if (result[index] == '"' && inside == true)
-            {
                 char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
                 if (!buffer)
                     return {};
                 std::memcpy(buffer, &result.c_str()[last], index - last);
                 std::string ret = buffer;
+                if (ret.size() == 0)
+                    break;
                 tokens.push_back(ret);
+                last = index + 2;
                 index++;
-                last = index + 1;
                 free(buffer);
                 inside = false;
-                continue;
             }
-            if (result[index] == '\0' && inside == true)
+            else if (result[index] == '\0' && inside == true)
             {
                 char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
                 if (!buffer)
                     return {};
                 std::memcpy(buffer, &result.c_str()[last], index - last);
                 std::string ret = buffer;
+                if (ret.size() == 0)
+                    break;
                 tokens.push_back(ret);
-                last = index + 1;
+                last = index + 2;
                 free(buffer);
-                break;
+                inside = false;
             }
         }
     }
@@ -263,7 +268,9 @@ void evaluate(std::vector<std::string> tokens)
         for (unsigned int i = 2; i < tokens.size(); i++)
         {
             buffer.push_back(tokens[i]);
+            write_file.append("\"");
             write_file.append(tokens[i]);
+            write_file.append("\"");
             if (i < tokens.size() - 1)
                 write_file.append(" ");
         }
@@ -287,7 +294,9 @@ void evaluate(std::vector<std::string> tokens)
                     for (unsigned int i = 2; i < tokens.size(); i++)
                     {
                         db_push.push_back(tokens[i]);
+                        db_write.append("\"");
                         db_write.append(tokens[i]);
+                        db_write.append("\"");
                         if (i < tokens.size() - 1)
                             db_write.append(" ");
                     }
@@ -380,13 +389,13 @@ void evaluate(std::vector<std::string> tokens)
             std::ifstream infile(tokens[1]);
             std::string head;
             std::getline(infile, head);
-            std::cout << head << std::endl;
+            //std::cout << head << std::endl;
             std::vector<std::string> header = tokenize(head);
             dbs.push_back(db(name, header));
             std::string linea;
             while (std::getline(infile, linea))
             {
-                std::cout << linea << std::endl;
+                //std::cout << linea << std::endl;
                 std::vector<std::string> values = tokenize(linea);
                 dbs.back().add_value(values);
                 //linea.clear();
