@@ -109,12 +109,61 @@ std::vector<db> dbs;
 std::vector<std::string> tokenize(std::string result)
 {
     std::vector<std::string> tokens;
-    std::stringstream check1(result);
+    //std::stringstream check1(result);
+    int index = 0;
+    bool inside = false;
+    size_t last = 0;
 
-    std::string intermediate;
-    while (getline(check1, intermediate, ' '))
+    while (result[index])
     {
-        tokens.push_back(intermediate);
+        index++;
+        if (result[index] == ' ' || result[index] == '"' || result[index] == '\0')
+        {
+            if ((result[index] == ' ' || result[index] == '\0') && inside == false)
+            {
+                char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
+                if (!buffer)
+                    return {};
+                std::memcpy(buffer, &result.c_str()[last], index - last);
+                std::string ret = buffer;
+                tokens.push_back(ret);
+                last = index + 1;
+                free(buffer);
+                continue;
+            }
+            if (result[index] == '"' && inside == false)
+            {
+                last++;
+                inside = true;
+                continue;
+            }
+            if (result[index] == '"' && inside == true)
+            {
+                char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
+                if (!buffer)
+                    return {};
+                std::memcpy(buffer, &result.c_str()[last], index - last);
+                std::string ret = buffer;
+                tokens.push_back(ret);
+                index++;
+                last = index + 1;
+                free(buffer);
+                inside = false;
+                continue;
+            }
+            if (result[index] == '\0' && inside == true)
+            {
+                char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
+                if (!buffer)
+                    return {};
+                std::memcpy(buffer, &result.c_str()[last], index - last);
+                std::string ret = buffer;
+                tokens.push_back(ret);
+                last = index + 1;
+                free(buffer);
+                break;
+            }
+        }
     }
     return tokens;
 }
@@ -303,7 +352,7 @@ void evaluate(std::vector<std::string> tokens)
         }
         std::cout << std::endl;
     }
-    if (tokens[0].compare("size") == 0)
+    if (tokens[0].compare("size") == 0) //doesnt work
     {
         for (unsigned int i = 0; i < dbs.size(); i++)
         {
@@ -418,6 +467,10 @@ void db_listen()
 int main()
 {
     WSADATA wsa;
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
     {
         printf("WSAStartup failed: %d\n", WSAGetLastError());
@@ -433,7 +486,18 @@ int main()
         if (msg[0] != NULL)
         {
             std::string test = msg;
+            auto t1 = high_resolution_clock::now();
             std::vector<std::string> tokens = tokenize(test);
+            auto t2 = high_resolution_clock::now();
+
+            /* Getting number of milliseconds as an integer. */
+            auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+            /* Getting number of milliseconds as a double. */
+            duration<double, std::milli> ms_double = t2 - t1;
+
+            //std::cout << ms_int.count() << "ms\n";
+            std::cout << ms_double.count() << "ms\n";
             evaluate(tokens);
         }
     }
