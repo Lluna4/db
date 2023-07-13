@@ -46,91 +46,104 @@ int	ft_atoi(const char* a)
 
 class db
 {
-    public:
-        db() {}
+public:
+    db() {}
 
-        db(std::string name, std::vector<std::string> initial_values)
-            :name_(name), header(initial_values)
-        {}
+    db(std::string name, std::vector<std::string> initial_values)
+        :name_(name), header(initial_values)
+    {}
 
-        void rename(std::string new_name)
-        {
-            name_ = new_name;
-        }
+    void rename(std::string new_name)
+    {
+        name_ = new_name;
+    }
 
-        void add_value(std::vector<std::string> new_value)
-        {
-            values.push_back(new_value);
-            size++;
-        }
-        
-        void remove_value(int index)
-        {
-            values.erase(values.begin() + index);
-        }
-        
-        std::vector<std::vector<std::string>> get_values()
-        {
-            return values;
-        }
+    void add_value(std::vector<std::string> new_value)
+    {
+        values.push_back(new_value);
+        size++;
+    }
 
-        std::vector<std::string> get_value(int index)
-        {
-            return values[index];
-        }
-        
-        std::string get_name()
-        {
-            return name_;
-        }
+    void remove_value(int index)
+    {
+        values.erase(values.begin() + index);
+    }
 
-        int get_size()
-        {
-            return size;
-        }
+    std::vector<std::vector<std::string>> get_values()
+    {
+        return values;
+    }
 
-        int header_size()
-        {
-            return header.size();
-        }
-        std::vector<std::string> get_header()
-        {
-            return header;
-        }
+    std::vector<std::string> get_value(int index)
+    {
+        return values[index];
+    }
 
-    private:
-        std::string name_;
-        std::vector<std::string> header;
-        std::vector<std::vector<std::string>> values;
-        int size = 0;
+    std::string get_name()
+    {
+        return name_;
+    }
+
+    int get_size()
+    {
+        return size;
+    }
+
+    int header_size()
+    {
+        return header.size();
+    }
+    std::vector<std::string> get_header()
+    {
+        return header;
+    }
+
+private:
+    std::string name_;
+    std::vector<std::string> header;
+    std::vector<std::vector<std::string>> values;
+    int size = 0;
 };
 std::vector<db> dbs;
 
-std::vector<std::string> tokenize(std::string result)
+std::vector<std::string> tokenize(std::string result, char separator = ' ')
 {
     std::vector<std::string> tokens;
-    int index = -1;
+    int index = 0;
     int a = 0;
     bool inside = false;
     size_t last = 0;
-
+    while (result[index] == ' ' || result[index] == separator)
+        index++;
+    if (index > -1)
+        index--;
+    if (index >= 0)
+    {
+        a = index;
+        last = index + 1;
+    }
     while (result[a])
     {
         index++;
         a = index;
-        if (result[index] == ' ' || result[index] == '"' || result[index] == '\0')
+        if (result[index] == separator || result[index] == '"' || result[index] == '\0')
         {
-            if ((result[index] == ' ' || result[index] == '\0') && inside == false)
+            if ((result[index] == separator || result[index] == '\0') && inside == false)
             {
                 char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
                 if (!buffer)
                     return {};
-                std::memcpy(buffer, &result.c_str()[last], index - last);
+                memcpy(buffer, &result.c_str()[last], index - last);
                 std::string ret = buffer;
                 if (ret.size() == 0)
                     break;
                 tokens.push_back(ret);
-                last = index + 1;
+                //last = index;
+                while (result[index] == ' ' || result[index] == separator)
+                    index++;
+                if (result[index] == '"')
+                    index--;
+                last = index;
                 free(buffer);
             }
             else if (result[index] == '"' && inside == false)
@@ -144,13 +157,22 @@ std::vector<std::string> tokenize(std::string result)
                 char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
                 if (!buffer)
                     return {};
-                std::memcpy(buffer, &result.c_str()[last], index - last);
+                memcpy(buffer, &result.c_str()[last], index - last);
                 std::string ret = buffer;
                 if (ret.size() == 0)
                     break;
                 tokens.push_back(ret);
-                last = index + 2;
                 index++;
+                if (result[index] != '\0')
+                {
+                    while (result[index] == ' ' || result[index] == separator)
+                        index++;
+                    if (result[index] == '"')
+                        index--;
+                    last = index;
+                }
+                else
+                    break;
                 free(buffer);
                 inside = false;
             }
@@ -159,12 +181,11 @@ std::vector<std::string> tokenize(std::string result)
                 char* buffer = (char*)calloc(static_cast<size_t>(index - last) + 1, sizeof(char));
                 if (!buffer)
                     return {};
-                std::memcpy(buffer, &result.c_str()[last], index - last);
+                memcpy(buffer, &result.c_str()[last], index - last);
                 std::string ret = buffer;
                 if (ret.size() == 0)
                     break;
                 tokens.push_back(ret);
-                last = index + 2;
                 free(buffer);
                 inside = false;
             }
@@ -345,7 +366,7 @@ void evaluate(std::vector<std::string> tokens)
                     print_words(values[y], max);
                     print_line(values[y], max);
                 }
-                
+
                 return;
             }
         }
@@ -460,7 +481,7 @@ void db_listen()
         WSACleanup();
         return;
     }
-    //printf("La base de datos localhost:5050\n");
+    std::cout << "El server se inicio en el puerto " << PORT << std::endl;
     while (true)
     {
         listen(listen_sock, SOMAXCONN);
@@ -471,6 +492,32 @@ void db_listen()
     }
 
     WSACleanup();
+}
+
+void create_config()
+{
+    std::ofstream cfg("config.cfg");
+    cfg << "//Esta es la configuracion de la base de datos\n";
+    cfg << "//Esto cambia el puerto a donde mira el servidor por sockets de la base de datos (default 5049)\n";
+    cfg << "port:5049";
+    cfg.close();
+}
+
+void load_config()
+{
+    std::ifstream infile("config.cfg");
+    std::string linea;
+    while (std::getline(infile, linea))
+    {
+        //std::cout << linea << std::endl;
+        if (linea.starts_with("//") == false)
+        {
+            std::vector<std::string> values = tokenize(linea, ':');
+            PORT = atoi(values[1].c_str());
+            break;
+        }
+        //linea.clear();
+    }
 }
 
 int main()
@@ -485,11 +532,20 @@ int main()
         printf("WSAStartup failed: %d\n", WSAGetLastError());
         return 1;
     }
+    if (std::filesystem::exists("config.cfg") == false)
+    {
+        create_config();
+    }
+    else
+    {
+        load_config();
+    }
     std::thread file_th(db_listen);
     file_th.detach();
     char msg[1024];
     while (true)
     {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         std::cout << "> ";
         std::cin.getline(msg, 1024);
         if (msg[0] != NULL)
