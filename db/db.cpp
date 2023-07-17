@@ -264,8 +264,30 @@ void db_sv(SOCKET cliente)
         }
         memset(buffer, 0, 1024);
     }
-
 }
+
+int vector_search(std::vector<std::string> vector, std::string str_to_search, int size = -1)
+{
+    if (size == -1)
+        size = vector.size();
+    for (unsigned int i = 0; i < size; i++)
+    {
+        if (vector[i].compare(str_to_search) == 0)
+            return i;
+    }
+    return -1;
+}
+
+/*int vector_search(std::vector<std::string> vector, char str_to_search, int size = -1)
+{
+    if (size == -1)
+        size = vector.size();
+    for (unsigned int i = 0; i < size; i++)
+    {
+
+    }
+    return -1;
+}*/
 
 void evaluate(std::vector<std::string> tokens)
 {
@@ -444,6 +466,22 @@ void evaluate(std::vector<std::string> tokens)
             {
                 if (tokens.size() > 2)
                 {
+                    if (tokens[2].compare("*") == 0)
+                    {
+                        std::vector<std::vector<std::string>> values = dbs[i].get_values();
+                        int size = dbs[i].header_size();
+                        for (unsigned int y = 0; y < values.size(); y++)
+                        {
+                            for (unsigned int x = 0; x < (unsigned int)size; x++)
+                            {
+                                std::cout << values[y][x];
+                                if (x < (unsigned int)size - 1)
+                                    std::cout << " ";
+                            }
+                            std::cout << std::endl;
+                        }
+                        break;
+                    }
                     std::vector<std::string> values = dbs[i].get_value(ft_atoi(tokens[2].c_str()) - 1);
                     for (unsigned int x = 0; x < values.size(); x++)
                     {
@@ -513,8 +551,11 @@ void load_config()
         if (linea.starts_with("//") == false)
         {
             std::vector<std::string> values = tokenize(linea, ':');
-            PORT = atoi(values[1].c_str());
-            break;
+            if (values[0].compare("port") == 0)
+            {
+                PORT = atoi(values[1].c_str());
+                break;
+            }
         }
         //linea.clear();
     }
