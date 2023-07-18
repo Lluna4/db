@@ -278,16 +278,17 @@ int vector_search(std::vector<std::string> vector, std::string str_to_search, in
     return -1;
 }
 
-/*int vector_search(std::vector<std::string> vector, char str_to_search, int size = -1)
+int vector_search(std::vector<std::string> vector, char str_to_search, int size = -1)
 {
     if (size == -1)
         size = vector.size();
     for (unsigned int i = 0; i < size; i++)
     {
-
+        if (vector[i].find(str_to_search) != -1)
+            return vector[i].find(str_to_search);
     }
     return -1;
-}*/
+}
 
 void evaluate(std::vector<std::string> tokens)
 {
@@ -481,6 +482,11 @@ void evaluate(std::vector<std::string> tokens)
                             std::cout << std::endl;
                         }
                         break;
+                    }
+                    int search_index = vector_search(tokens, "where");
+                    if (search_index > -1)
+                    {
+                        std::cout << search_index << std::endl;
                     }
                     std::vector<std::string> values = dbs[i].get_value(ft_atoi(tokens[2].c_str()) - 1);
                     for (unsigned int x = 0; x < values.size(); x++)
