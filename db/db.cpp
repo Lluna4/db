@@ -466,11 +466,11 @@ void evaluate(std::vector<std::string> tokens)
 			if (tokens[search_index + 1].find('=') != std::string::npos)
 			{
 				std::vector<std::string> query = tokenize(tokens[search_index + 1], '=');
-				std::vector<std::string> header = db[i].get_header();
+				std::vector<std::string> header = dbs[i].get_header();
 				int index = -1;
 				for (unsigned int x = 0; x < header.size(); x++)
 				{
-					if (header[x].compare(query[0] == 0))
+					if (header[x].compare(query[0]) == 0)
 					{
 						index = x;
 						break;
