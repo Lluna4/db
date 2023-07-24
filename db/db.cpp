@@ -3,13 +3,10 @@
 #include <iostream>
 #include <string.h>
 #include <sys/types.h>
-#include <WinSock2.h>
 #include <vector>
 #include <thread>
 #include <ctime>
 #include <chrono>
-#include <Ws2tcpip.h>
-#include <format>
 #include <fstream>
 #include <filesystem>
 #include <algorithm>
@@ -244,28 +241,6 @@ void print_words(std::vector<std::string> header, std::vector<int> max)
     std::cout << std::endl;
 }
 
-void db_sv(SOCKET cliente)
-{
-    int bytes_read = 0;
-    char* buffer = (char*)calloc(1024, sizeof(char));
-    std::cout << "Yayy" << std::endl; //CREATE {name} {val1} {val2} {val∞}...
-    while (1)
-    {
-        bytes_read = recv(cliente, buffer, 1024, 0);
-        if (bytes_read == -1)
-        {
-            break;
-        }
-        std::string result = buffer;
-        std::vector<std::string> tokens = tokenize(result);
-        for (unsigned int i = 0; i < tokens.size(); i++)
-        {
-            std::cout << tokens[i] << std::endl;
-        }
-        memset(buffer, 0, 1024);
-    }
-}
-
 int vector_search(std::vector<std::string> vector, std::string str_to_search, int size = -1)
 {
     if (size == -1)
@@ -484,9 +459,33 @@ void evaluate(std::vector<std::string> tokens)
                         break;
                     }
                     int search_index = vector_search(tokens, "where");
+		    std::cout << search_index << std::endl;
                     if (search_index > -1)
                     {
                         std::cout << search_index << std::endl;
+			if (tokens[search_index + 1].find('=') != std::string::npos)
+			{
+				std::vector<std::string> query = tokenize(tokens[search_index + 1], '=');
+				std::vector<std::string> header = db[i].get_header();
+				int index = -1;
+				for (unsigned int x = 0; x < header.size(); x++)
+				{
+					if (header[x].compare(query[0] == 0))
+					{
+						index = x;
+						break;
+					}
+				}
+				if (index == -1)
+				{
+					std::cout << "no se ha encontrado la columna que quieres buscar" << std::endl;
+					break;
+				}
+				std::cout << header[index] << std::endl;
+			}
+			else
+				std::cout << "No hay =" << std::endl;
+			break;
                     }
                     std::vector<std::string> values = dbs[i].get_value(ft_atoi(tokens[2].c_str()) - 1);
                     for (unsigned int x = 0; x < values.size(); x++)
@@ -505,38 +504,6 @@ void evaluate(std::vector<std::string> tokens)
     }
 }
 
-void db_listen()
-{
-    int client_size;
-    SOCKET listen_sock, client_sock;
-    struct sockaddr_in server;
-    listen_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listen_sock == INVALID_SOCKET) {
-        printf("socket failed: %d\n", WSAGetLastError());
-        WSACleanup();
-        return;
-    }
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = inet_addr(SERVER_IP.c_str());
-    server.sin_port = htons(5050);
-    if (bind(listen_sock, (struct sockaddr*)&server, sizeof(server)) == SOCKET_ERROR) {
-        printf("bind failed: %d\n", WSAGetLastError());
-        closesocket(listen_sock);
-        WSACleanup();
-        return;
-    }
-    std::cout << "El server se inicio en el puerto " << PORT << std::endl;
-    while (true)
-    {
-        listen(listen_sock, SOMAXCONN);
-        client_size = sizeof(struct sockaddr_in);
-        client_sock = accept(listen_sock, (struct sockaddr*)&server, &client_size);
-        std::thread server_db(db_sv, client_sock);
-        server_db.detach();
-    }
-
-    WSACleanup();
-}
 
 void create_config()
 {
@@ -569,16 +536,10 @@ void load_config()
 
 int main()
 {
-    WSADATA wsa;
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::duration;
     using std::chrono::milliseconds;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-    {
-        printf("WSAStartup failed: %d\n", WSAGetLastError());
-        return 1;
-    }
     if (std::filesystem::exists("config.cfg") == false)
     {
         create_config();
@@ -587,8 +548,6 @@ int main()
     {
         load_config();
     }
-    std::thread file_th(db_listen);
-    file_th.detach();
     char msg[1024];
     while (true)
     {
