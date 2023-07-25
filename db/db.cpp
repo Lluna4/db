@@ -482,6 +482,20 @@ void evaluate(std::vector<std::string> tokens)
 					break;
 				}
 				std::cout << header[index] << std::endl;
+				std::vector<std::vector<std::string>> values = dbs[i].get_values();
+				for (unsigned int x = 0; x < dbs[i].get_size(); x++)
+				{
+					if (values[x][index].compare(query[1]) == 0)
+					{
+						for (unsigned int y = 0; y < header.size(); y++)
+						{
+							std::cout << values[x][y];
+							if (y < tokens.size() - 1)
+								std::cout << " ";
+						}
+						std::cout << std::endl;
+					}
+				}
 			}
 			else
 				std::cout << "No hay =" << std::endl;
