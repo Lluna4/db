@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <iterator>
+#include <unordered_map>
 
 const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
@@ -40,7 +41,6 @@ int	ft_atoi(const char* a)
     }
     return (sign * ret);
 }
-
 class db
 {
 public:
@@ -54,10 +54,22 @@ public:
     {
         name_ = new_name;
     }
-
+    
     void add_value(std::vector<std::string> new_value)
     {
         values.push_back(new_value);
+       for (int i = 0; i < header.size(); i++)
+       {
+            if (querying_cache.contains(header[i]) == true) 
+            {
+                querying_cache[header[i]].insert({new_value[i], {i, size}});   
+            }
+            else
+            {
+                querying_cache.insert({header[i], {}});
+                querying_cache[header[i]].insert({new_value[i], {i, size}});
+            }
+       }
         size++;
     }
 
@@ -94,13 +106,15 @@ public:
     {
         return header;
     }
-
 private:
     std::string name_;
     std::vector<std::string> header;
     std::vector<std::vector<std::string>> values;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::vector<int>>> querying_cache;
     int size = 0;
+
 };
+
 std::vector<db> dbs;
 
 std::vector<std::string> tokenize(std::string result, char separator = ' ')
