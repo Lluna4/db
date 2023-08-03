@@ -16,6 +16,7 @@
 const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
 int PORT = 5050;
+bool debug = false;
 
 int	ft_atoi(const char* a)
 {
@@ -106,6 +107,12 @@ public:
     {
         return header;
     }
+
+    std::unordered_map<std::string, std::unordered_map<std::string, std::vector<int>>> cache()
+    {
+        return querying_cache;
+    }
+
 private:
     std::string name_;
     std::vector<std::string> header;
@@ -530,6 +537,31 @@ void evaluate(std::vector<std::string> tokens)
             }
         }
     }
+    
+    if (tokens[0].compare("query_cache") == 0 && debug == true)
+    {
+        std::unordered_map<std::string, std::unordered_map<std::string, std::vector<int>>> querying;
+        //std::cout << "a" << std::endl;
+        if (tokens.size() < 2)
+            return;
+        for (unsigned int i = 0; i < dbs.size(); i++)
+        {
+            if (dbs[i].get_name().compare(tokens[1]) == 0)
+            {
+                querying = dbs[i].cache();
+                break;
+            }
+            std::cout << "No se encontro base de datos" << std::endl;
+        }
+        for (const auto & [ key, value ] : querying) 
+        {
+            std::cout << " column: " << key << " value :";
+            for (const auto & [ key2, value2 ] : value) 
+            {
+                std::cout << key2 << " position : (" << value2[0] << ", "<< value2[1] << ")" << std::endl;
+            }
+        }
+    }
 }
 
 
@@ -562,12 +594,23 @@ void load_config()
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::duration;
     using std::chrono::milliseconds;
+    
+    if (argc > 1)
+    {
+        //std::cout << "A" << argv[1] << std::endl;
+        if (strcmp(argv[1], "--debug") == 0)
+        {
+            debug = true;
+            std::cout << "debug activated" << std::endl;
+        }
+    }
+
     if (std::filesystem::exists("config.cfg") == false)
     {
         create_config();
@@ -582,7 +625,7 @@ int main()
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         std::cout << "> ";
         std::cin.getline(msg, 1024);
-        if (msg[0] != NULL)
+        if (msg[0] != '\0')
         {
             std::string test = msg;
             auto t1 = high_resolution_clock::now();
