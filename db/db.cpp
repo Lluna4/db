@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <iterator>
 #include <unordered_map>
+#include <map>
 
 const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
@@ -42,6 +43,64 @@ int	ft_atoi(const char* a)
     }
     return (sign * ret);
 }
+
+static int	ft_intlen(int n)
+{
+	int	ret;
+
+	ret = 1;
+	while (n >= 10)
+	{
+		ret++;
+		n = n / 10;
+	}
+	return (ret);
+}
+
+static char	*ft_make_ret(int n, int sign)
+{
+	int		len;
+	char	*ret;
+
+	len = ft_intlen(n) + sign;
+	ret = (char *)calloc(len + 1, sizeof(char));
+	if (!ret)
+		return (0);
+	len--;
+	while (len >= 0)
+	{
+		ret[len] = (n % 10) + '0';
+		n = n / 10;
+		len--;
+	}
+	if (sign == 1)
+		ret[0] = '-';
+	return (ret);
+}
+
+char	*ft_itoa(int n)
+{
+	char	*ret;
+	int		sign;
+
+	sign = 0;
+	if (n == -2147483648)
+	{
+		ret = (char *)malloc(12 * sizeof(char));
+		if (!ret)
+			return (0);
+		memcpy(ret, "-2147483648", 12);
+		return (ret);
+	}
+	if (n < 0)
+	{
+		n *= -1;
+		sign = 1;
+	}
+	return (ft_make_ret(n, sign));
+}
+
+
 class db
 {
 public:
@@ -63,11 +122,36 @@ public:
        {
             if (querying_cache.contains(header[i]) == true) 
             {
+                if (querying_cache[header[i]].contains(new_value[i]) == true)
+                {
+                    if (overrides.contains(new_value[i]) == true)
+                    {
+                        int x = overrides[new_value[i]] + 1;
+                        overrides[new_value[i]] = x;
+                        std::cout << "A" << std::endl;
+                    }
+                    else
+                        overrides.insert({new_value[i], 1});
+                    std::cout << overrides[new_value[i]] << " " << new_value[i] << std::endl;
+                    new_value[i].append(ft_itoa(overrides[new_value[i]]));
+                }
                 querying_cache[header[i]].insert({new_value[i], {i, size}});   
             }
             else
             {
                 querying_cache.insert({header[i], {}});
+                if (querying_cache[header[i]].contains(new_value[i]) == true)
+                {
+                    if (overrides.contains(new_value[i]) == true)
+                    {
+                        int x = overrides[new_value[i]] + 1;
+                        overrides[new_value[i]] = x;
+                    }
+                    else
+                        overrides.insert({new_value[i], 1});
+                    std::cout << overrides[new_value[i]] << " " << new_value[i] << std::endl;
+                    new_value[i].append(ft_itoa(overrides[new_value[i]]));
+                }
                 querying_cache[header[i]].insert({new_value[i], {i, size}});
             }
        }
@@ -118,7 +202,9 @@ private:
     std::vector<std::string> header;
     std::vector<std::vector<std::string>> values;
     std::unordered_map<std::string, std::unordered_map<std::string, std::vector<int>>> querying_cache;
+    std::map<std::string, int> overrides;
     int size = 0;
+
 
 };
 
