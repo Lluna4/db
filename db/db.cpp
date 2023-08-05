@@ -13,6 +13,7 @@
 #include <iterator>
 #include <unordered_map>
 #include <map>
+#include <format>
 
 const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
@@ -156,6 +157,34 @@ public:
             }
        }
         size++;
+    }
+    
+    std::vector<std::vector<std::string>> search(std::string column, std::string value)
+    {
+        std::vector<std::vector<std::string>> ret;
+        if (querying_cache.contains(column) == true)
+        {
+            if (querying_cache[column].contains(value) == true)
+            {
+                std::vector<int> pos = querying_cache[column][value];
+                std::vector<std::string> add_ve = values[pos[1]];
+                ret.push_back(add_ve);
+                if (overrides.contains(value) == true)
+                {
+                   int loops = overrides[value];
+                   std::string initial_value = value;
+                   for (int i = 1; i < loops; i++)
+                   {
+                        value = std::format("{}{}", initial_value, ft_itoa(i));
+                        std::vector<int> posi = querying_cache[column][value];
+                        std::vector<std::string> add_vec = values[posi[1]];
+                        ret.push_back(add_vec);
+                   }
+                }
+                return ret;
+            }
+        }
+        return ret;
     }
 
     void remove_value(int index)
@@ -607,7 +636,7 @@ void evaluate(std::vector<std::string> tokens)
 			else
 				std::cout << "No hay =" << std::endl;
 			break;
-                    }
+                }
                     std::vector<std::string> values = dbs[i].get_value(ft_atoi(tokens[2].c_str()) - 1);
                     for (unsigned int x = 0; x < values.size(); x++)
                     {
@@ -647,6 +676,24 @@ void evaluate(std::vector<std::string> tokens)
                 std::cout << key2 << " position : (" << value2[0] << ", "<< value2[1] << ")" << std::endl;
             }
         }
+    }
+    if (tokens[0].compare("search") == 0 && debug == true)
+    {
+        for (int i = 0; i < dbs.size(); i++)
+        {
+            if (dbs[i].get_name().compare(tokens[1]) == 0)
+            {
+                std::vector<std::vector<std::string>> ret = dbs[i].search(tokens[2], tokens[3]);
+                for (int x = 0; x < ret.size(); x++)
+                {
+                    for (int y = 0; y < ret[x].size(); y++)
+                    {
+                        std::cout << ret[x][y] << " ";
+                    }
+                    std::cout << std::endl;
+                }
+            }
+        }   
     }
 }
 
