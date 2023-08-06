@@ -1,3 +1,3 @@
 # db
 Base de datos en c++\
-Requiere de visual studio 2022
+Se compila con g++ -std=c++20 db.cpp
