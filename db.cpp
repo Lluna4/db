@@ -574,8 +574,8 @@ void evaluate(std::vector<std::string> tokens)
     {
         for (unsigned int i = 0; i < dbs.size(); i++)
         {
-            if (dbs[i].get_name().compare(tokens[1]) == 0 && dbs[i].get_size() > ft_atoi(tokens[2].c_str()) - 1)
-            {
+           if (dbs[i].get_name().compare(tokens[1]) == 0)
+           {
                 if (tokens.size() > 2)
                 {
                     if (tokens[2].compare("*") == 0)
@@ -595,60 +595,24 @@ void evaluate(std::vector<std::string> tokens)
                         break;
                     }
                     int search_index = vector_search(tokens, "where");
-		    std::cout << search_index << std::endl;
                     if (search_index > -1)
                     {
-                        std::cout << search_index << std::endl;
-			if (tokens[search_index + 1].find('=') != std::string::npos)
-			{
-				std::vector<std::string> query = tokenize(tokens[search_index + 1], '=');
-				std::vector<std::string> header = dbs[i].get_header();
-				int index = -1;
-				for (unsigned int x = 0; x < header.size(); x++)
-				{
-					if (header[x].compare(query[0]) == 0)
-					{
-						index = x;
-						break;
-					}
-				}
-				if (index == -1)
-				{
-					std::cout << "no se ha encontrado la columna que quieres buscar" << std::endl;
-					break;
-				}
-				std::cout << header[index] << std::endl;
-				std::vector<std::vector<std::string>> values = dbs[i].get_values();
-				for (unsigned int x = 0; x < dbs[i].get_size(); x++)
-				{
-					if (values[x][index].compare(query[1]) == 0)
-					{
-						for (unsigned int y = 0; y < header.size(); y++)
-						{
-							std::cout << values[x][y];
-							if (y < tokens.size() - 1)
-								std::cout << " ";
-						}
-						std::cout << std::endl;
-					}
-				}
-			}
-			else
-				std::cout << "No hay =" << std::endl;
-			break;
-                }
-                    std::vector<std::string> values = dbs[i].get_value(ft_atoi(tokens[2].c_str()) - 1);
-                    for (unsigned int x = 0; x < values.size(); x++)
-                    {
-                        std::cout << values[x];
-                        if (x < tokens.size() - 1)
-                            std::cout << " ";
+                        if (tokens[search_index + 1].find('=') != std::string::npos)
+                        {
+                            std::vector<std::string> query = tokenize(tokens[search_index + 1], '=');
+                            std::vector<std::vector<std::string>> ret = dbs[i].search(query[0], query[1]);
+
+                            for (int x = 0; x < ret.size(); x++)
+                            {
+                                for (int y = 0; y < ret[x].size(); y++)
+                                {
+                                    std::cout << ret[x][y] << " ";
+                                }
+                                std::cout << std::endl;
+                            }
+                        }
                     }
-                    std::cout << std::endl;
                 }
-                else
-                    std::cout << "No hay suficientes parametros" << std::endl;
-                return;
             }
         }
     }
