@@ -14,6 +14,9 @@
 #include <unordered_map>
 #include <map>
 #include <format>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 const std::string SERVER_IP = "0.0.0.0";
 //const char* key = generate_key();
@@ -691,6 +694,52 @@ void load_config()
     }
 }
 
+void manage_server(int socket)
+{
+    send(socket, "Hola! Bienvenido/a/e a la base de datos, tienes diferentes opciones\ncreate [nombre] [args]...\n add [nombre] [args]", 115, 0);
+    char * msg = (char *)calloc(1024, sizeof(char));
+    while (true)
+    {
+        memset(msg, 0, sizeof(msg));
+        recv(socket, msg, 1024, 0);
+        if (msg[0] != '\0')
+        {
+            std::string test = msg;
+            std::vector<std::string> tokens = tokenize(test);
+            evaluate(tokens);
+        }
+    }
+}
+
+void server_start()
+{
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == 0)
+    {
+        std::cout << "Se fallo al crear socket" << std::endl;
+        return;
+    }
+    address.sin_family = AF_INET;
+    inet_pton(AF_INET, SERVER_IP.c_str(), &address.sin_addr);
+    address.sin_port = htons(PORT);
+    if (bind(sock, (struct sockaddr*)&address, sizeof(address)) < 0)
+    {
+        std::cout << "Bind ha fallado" << std::endl;
+    }
+
+    while (true)
+    {
+        listen(sock, 100);
+        int new_socket = accept(sock, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+        std::cout << new_socket << std::endl;
+        std::thread man_sv(manage_server, new_socket);
+        man_sv.detach();
+    }
+
+}
+
 int main(int argc, char *argv[])
 {
     using std::chrono::high_resolution_clock;
@@ -698,6 +747,7 @@ int main(int argc, char *argv[])
     using std::chrono::duration;
     using std::chrono::milliseconds;
     
+
     if (argc > 1)
     {
         //std::cout << "A" << argv[1] << std::endl;
@@ -716,6 +766,10 @@ int main(int argc, char *argv[])
     {
         load_config();
     }
+    
+    std::thread sv_start(server_start);
+    sv_start.detach();
+
     char msg[1024];
     while (true)
     {
