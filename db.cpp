@@ -122,8 +122,10 @@ public:
     void add_value(std::vector<std::string> new_value)
     {
         values.push_back(new_value);
-       for (int i = 0; i < header.size(); i++)
-       {
+        for (int i = 0; i < header.size(); i++)
+        {
+            if (i > new_value.size() - 1)
+                break;
             if (querying_cache.contains(header[i]) == true) 
             {
                 if (querying_cache[header[i]].contains(new_value[i]) == true)
@@ -132,11 +134,11 @@ public:
                     {
                         int x = overrides[new_value[i]] + 1;
                         overrides[new_value[i]] = x;
-                        std::cout << "A" << std::endl;
+                        //std::cout << "A" << std::endl;
                     }
                     else
                         overrides.insert({new_value[i], 1});
-                    std::cout << overrides[new_value[i]] << " " << new_value[i] << std::endl;
+                    //std::cout << overrides[new_value[i]] << " " << new_value[i] << std::endl;
                     new_value[i].append(ft_itoa(overrides[new_value[i]]));
                 }
                 querying_cache[header[i]].insert({new_value[i], {i, size}});   
@@ -158,7 +160,7 @@ public:
                 }
                 querying_cache[header[i]].insert({new_value[i], {i, size}});
             }
-       }
+        }
         size++;
     }
     
@@ -174,20 +176,50 @@ public:
                 ret.push_back(add_ve);
                 if (overrides.contains(value) == true)
                 {
-                   int loops = overrides[value];
-                   std::string initial_value = value;
-                   for (int i = 1; i <= loops; i++)
-                   {
+                    int loops = overrides[value];
+                    std::string initial_value = value;
+                    for (int i = 1; i <= loops; i++)
+                    {
                         value = std::format("{}{}", initial_value, ft_itoa(i));
                         std::vector<int> posi = querying_cache[column][value];
                         std::vector<std::string> add_vec = values[posi[1]];
                         ret.push_back(add_vec);
-                   }
+                    }
                 }
                 return ret;
             }
         }
         return ret;
+    }
+
+    std::unordered_map<std::string, std::vector<int>> get_column(std::string column)
+    {
+        if (querying_cache.contains(column) == true)
+        {
+            return querying_cache[column];
+        }
+        std::unordered_map<std::string, std::vector<int>> ret;
+        return ret;
+    }
+
+    void column_names()
+    {
+        for (auto& [key, value]: querying_cache)
+        {
+            std::cout << key << std::endl;
+        }
+    }
+
+    bool exists(std::string column, std::string value)
+    {
+        if (querying_cache.contains(column) == true)
+        {
+            if (querying_cache[column].contains(value) == true)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     void remove_value(int index)
@@ -203,6 +235,11 @@ public:
     std::vector<std::string> get_value(int index)
     {
         return values[index];
+    }
+
+    std::string get_item(int row, int column)
+    {
+        return values[row][column];
     }
 
     std::string get_name()
@@ -229,6 +266,8 @@ public:
         return querying_cache;
     }
 
+    
+
 private:
     std::string name_;
     std::vector<std::string> header;
@@ -236,8 +275,6 @@ private:
     std::unordered_map<std::string, std::unordered_map<std::string, std::vector<int>>> querying_cache;
     std::map<std::string, int> overrides;
     int size = 0;
-
-
 };
 
 std::vector<db> dbs;
